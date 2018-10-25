@@ -77,9 +77,13 @@ class TwoLayerNet(object):
     # shape (N, C). Note that this does not include the softmax                 #
     # HINT: This is just a series of matrix multiplication.                     #
     #############################################################################
-    scores = X.dot(W1) + b1
-    scores[scores < 0] = 0
-    scores = scores.dot(W2) + b2
+    n1 = X.dot(W1)
+    n2 = n1 + b1
+    n3 = n2.copy()
+    n3[n3 < 0] = 0
+    n4 = n3.dot(W2)
+    n5 = n4 + b2
+    scores = n5.copy()
     #############################################################################
     #                              END OF TODO#1                                #
     #############################################################################
@@ -96,7 +100,7 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    softmax = scores.copy()
+    softmax = n5.copy()
     softmax = np.exp(softmax)
     softmax /= softmax.sum(axis=1).reshape(-1, 1)
     loss = 0.0
@@ -116,11 +120,24 @@ class TwoLayerNet(object):
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     # don't forget about the regularization term                                #
     #############################################################################
-    before_sm_grad = softmax.copy()
+    dn5 = softmax.copy()
     for i in range(N):
-      before_sm_grad[i, y[i]] -= 1
-    grads['W2'] = before_sm_grad.dot(W2.T)
-    grads['b2'] = before_sm_grad.sum(axis=1)
+      dn5[i, y[i]] -= 1.0
+    dn5 /= N
+    grads['b2'] = dn5.sum(axis=0)
+
+    dn4 = dn5.copy()
+    dn3 = dn4.dot(W2.T)
+    dn3[n3 == 0] = 0
+    dW2 = n3.T.dot(dn4) + W2 * reg
+    grads['W2'] = dW2
+
+    dn2 = dn3
+    dn1 = dn2
+    grads['b1'] = dn2.sum(axis=0)
+
+    dW1 = X.T.dot(dn1) + W1 * reg
+    grads['W1'] = dW1
     #############################################################################
     #                              END OF TODO#3                                #
     #############################################################################
