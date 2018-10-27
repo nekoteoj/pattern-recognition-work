@@ -182,7 +182,9 @@ class TwoLayerNet(object):
       # them in X_batch and y_batch respectively.                             #
       # You might find np.random.choice() helpful.                            #
       #########################################################################
-
+      batch_idx = np.random.choice(num_train, min(batch_size, num_train), replace=False)
+      X_batch = X[batch_idx]
+      y_batch = y[batch_idx]
       #########################################################################
       #                             END OF YOUR TODO#4                        #
       #########################################################################
@@ -197,7 +199,8 @@ class TwoLayerNet(object):
       # using stochastic gradient descent. You'll need to use the gradients   #
       # stored in the grads dictionary defined above.                         #
       #########################################################################
-
+      for param in self.params:
+        self.params[param] = self.params[param] - learning_rate * grads[param]
       #########################################################################
       #                             END OF YOUR TODO#5                        #
       #########################################################################
@@ -217,7 +220,7 @@ class TwoLayerNet(object):
         #######################################################################
         # TODO#6: Decay learning rate (exponentially) after each epoch        #
         #######################################################################
-
+        learning_rate *= learning_rate_decay
         #######################################################################
         #                             END OF YOUR TODO#6                      #
         #######################################################################
@@ -249,7 +252,10 @@ class TwoLayerNet(object):
     ###########################################################################
     # TODO#7: Implement this function; it should be VERY simple!              #
     ###########################################################################
-
+    scores = self.loss(X)
+    softmax = np.exp(scores)
+    softmax /= softmax.sum(axis=1).reshape(-1, 1)
+    y_pred = np.argmax(softmax, axis=1)
     ###########################################################################
     #                              END OF YOUR TODO#7                         #
     ###########################################################################
